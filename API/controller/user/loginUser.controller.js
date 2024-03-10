@@ -21,7 +21,7 @@ const loginUser = async (req, res) => {
       });
     }
 
-    const chechedPassword = await bcrypt.compare(password, foundUser.password);
+    const checkedPassword = await bcrypt.compare(password, foundUser.password);
 
     // console.log(foundEmail, foundUser);
 
@@ -29,7 +29,7 @@ const loginUser = async (req, res) => {
     //   $and: [{ email: email, password: unhashedPassword }]
     // });
 
-    if (!foundUser || !chechedPassword) {
+    if (!foundUser || !checkedPassword) {
       return res.status(403).json({
         result: null,
         message: `Invalid username or password`
@@ -52,9 +52,10 @@ const loginUser = async (req, res) => {
       maxAge: 100000
     };
 
-    if (foundUser && chechedPassword) {
+    if (foundUser && checkedPassword) {
       return res.cookie("token", token, options).status(200).json({
         result: token,
+        userId: foundUser._id,
         message: `User login successful`
       });
     }

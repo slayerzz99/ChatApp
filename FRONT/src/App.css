@@ -1,0 +1,35 @@
+input {
+  border: 1px black solid;
+}
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Messages container */
+.messages-container {
+  overflow-y: auto; /* Enable vertical scrolling */
+  flex-grow: 1; /* Allow the messages container to grow and occupy remaining space */
+}
+
+/* Individual message */
+.message {
+  margin: 5px 10px;
+  padding: 10px;
+  border-radius: 5px;
+  background-color: #f0f0f0;
+}
+
+/* Style for sender's messages */
+.message.sent {
+  align-self: flex-end;
+  background-color: #dcf8c6; /* Example color */
+}
+
+/* Style for receiver's messages */
+.message.received {
+  align-self: flex-start;
+  background-color: #eaeaea; /* Example color */
+}

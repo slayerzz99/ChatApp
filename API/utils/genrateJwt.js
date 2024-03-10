@@ -5,7 +5,7 @@ const genrateJwt = item => {
     { _id: item._id, name: item.name, email: item.email },
     process.env.JWT_SECRET,
     {
-      expiresIn: "1h"
+      expiresIn: "4h"
     }
   );
 

@@ -1,4 +1,4 @@
-const getAllUsers = require("./getUser.controller");
+const getAllUsers = require("./getAllUser.controller");
 const registerUser = require("./registerUser.controller");
 const loginUser = require("./loginUser.controller");
 const getUserById = require("./getUserById.controller");
