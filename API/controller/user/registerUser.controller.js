@@ -10,13 +10,15 @@ const registerUser = async (req, res) => {
 
     if (!password || !email || !name || !confirmPassword) {
       return res.status(403).json({
-        result: `Name, email, password and confirm password are required`
+        result: null,
+        message: `Name, email, password and confirm password are required`
       });
     }
 
     if (password !== confirmPassword) {
       return res.status(403).json({
-        result: `Password and confirm password does not match`
+        result: null,
+        message: `Password and confirm password does not match`
       });
     }
 
@@ -26,7 +28,8 @@ const registerUser = async (req, res) => {
 
     if (prevUser) {
       return res.status(401).json({
-        result: `User already exists`
+        result: null,
+        message: `User with name or email already exists`
       });
     }
 
@@ -50,10 +53,21 @@ const registerUser = async (req, res) => {
 
     const token = genrateJwt(newUser);
 
-    res.status(201).json({
-      message: "User registered successfully",
-      user: newUser,
-      token: token
+    const options = {
+      httpOnly: true,
+      secure: true,
+      maxAge: 100000
+    };
+
+    // res.status(201).json({
+    //   message: "User registered successfully",
+    //   user: newUser,
+    //   token: token
+    // });
+    res.cookie("token", token, options).status(200).json({
+      result: token,
+      userId: newUser._id,
+      message: `User Register successful`
     });
   } catch (error) {
     console.error("Error registering user:", error);

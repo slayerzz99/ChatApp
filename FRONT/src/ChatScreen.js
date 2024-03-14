@@ -1,6 +1,7 @@
 import { io } from "socket.io-client";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import Header from "./Header";
 
 function ChatScreen() {
   const [users, setUsers] = useState(null);
@@ -10,14 +11,12 @@ function ChatScreen() {
   const [messages, setMessages] = useState([]);
   const navigate = useNavigate();
 
-
-  // Remaining code...
-
   const params = useParams();
   const id = params.id;
 
   const useId = localStorage.getItem("userId");
   console.log("useId", useId);
+  const token = localStorage.getItem("token");
 
     const getTokenFromCookie = () => {
     const cookies = document.cookie.split("; ");
@@ -30,11 +29,11 @@ function ChatScreen() {
     return null;
   };
 
-  const URL = "http://localhost:8000/api";
+  const URL = "https://node-h6he.onrender.com/api";
 
      const socket = useMemo(() => {
-        const token = getTokenFromCookie();
-        return io("http://localhost:8000", {
+        const tokenz = getTokenFromCookie();
+        return io("https://node-h6he.onrender.com", {
           auth: {
             token: token
           }
@@ -62,50 +61,49 @@ function ChatScreen() {
         console.log("Messages updated:", messages);
       }, [messages]); // Log messages whenever it's updated
       
+      const fetchMessages = async () => {
+        try {
+          const response = await fetch(`${URL}/messages/${useId}/${id}`);
+          if (!response.ok) {
+            throw new Error("Failed to fetch messages");
+          }
+          const data = await response.json();
+          setMessages(data);
+        } catch (error) {
+          console.error("Error fetching messages:", error);
+        }
+      };
+
+      const fetchData = async () => {
+        const tokenz = getTokenFromCookie();
+  
+        if (!token) {
+          navigate("/");
+          return;
+        }
+  
+        console.log(token);
+        try {
+          const response = await fetch(`${URL}/user/getUserById/${id}`, {
+            headers: {
+              Authorization: `${token}`
+            }
+          });
+  
+          if (!response.ok) {
+            throw new Error("Failed to fetch data");
+          }
+  
+          const res = await response.json();
+          setUsers(res?.result);
+          setLoading(false); // Update loading state once data is fetched
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
+      };
 
 
   useEffect(() => {
-    const fetchData = async () => {
-      const token = getTokenFromCookie();
-
-      if (!token) {
-        navigate("/");
-        return;
-      }
-
-      console.log(token);
-      try {
-        const response = await fetch(`${URL}/user/getUserById/${id}`, {
-          headers: {
-            Authorization: `${token}`
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch data");
-        }
-
-        const res = await response.json();
-        setUsers(res?.result);
-        setLoading(false); // Update loading state once data is fetched
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-
-    const fetchMessages = async () => {
-      try {
-        const response = await fetch(`${URL}/messages/${useId}/${id}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch messages");
-        }
-        const data = await response.json();
-        setMessages(data);
-      } catch (error) {
-        console.error("Error fetching messages:", error);
-      }
-    };
-  
     fetchMessages();
 
     fetchData();
@@ -117,12 +115,52 @@ function ChatScreen() {
 
     // Check if the message date is before today
     if (messageDate < today) {
-      return `${messageDate.toLocaleDateString()} ${messageDate.toLocaleTimeString()}`;
+      // Return time only for past dates
+      return messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } else {
-      return messageDate.toLocaleTimeString();
+      // Return empty string for current date (will be handled separately)
+      return "";
     }
   };
 
+  const renderMessages = () => {
+    let currentDate = null; // Track the current date to determine when to display it
+  
+    return messages.map((message, index) => {
+      // Convert message timestamp to a Date object
+      const messageDate = new Date(message.timestamp);
+      const formattedTime = formatDate(messageDate);
+  
+      // Check if the current message has a different date from the previous one
+      const showDate = messageDate.toLocaleDateString() !== currentDate;
+      currentDate = messageDate.toLocaleDateString();
+
+      const delChat = async (id) => {
+        const res = fetch(`${URL}/deletemessages/${id}`, {
+          method: 'DELETE',
+        })
+
+        const resp = await res.json();
+        console.log("deleeing" , resp);
+
+        fetchMessages();
+
+      }
+  
+      return (
+        <div className="flex items-center" key={index}>
+          <div>
+          {showDate && <div className="text-center mb-2 w-[10rem]">{currentDate}</div>}
+          <div className={message.senderId === useId ? "bg-blue-400 w-[15rem] text-right" : "bg-green-400 w-[15rem] text-left"}>
+            <div className="msgg">{message.message}</div>
+            <div className="text-xs">{formattedTime}</div>
+          </div>
+          </div>
+          <button onClick={() => delChat(message._id)}>Delete</button>
+        </div>
+      );
+    });
+  };
 
   const handleSub = () => {
     if (!users) {
@@ -146,16 +184,20 @@ function ChatScreen() {
 
   return (
     <div className="chat-container2">
+            <Header/>
+
       <p>Talking to : {users?.name}</p>
       <img className="w-6 h-6" src={users?.profilePic}></img>
     <div className="chat-container">
       <div className="messages-container">
-      {messages.map((message, index) => (
+      {/* {messages.map((message, index) => (
         <div key={index} className={message.senderId === useId ? "bg-blue-400 w-[15rem] text-right" : "bg-green-400 w-[15rem] text-left"}>
           <div>{message.message}</div>
           <div className="text-xs">{formatDate(message.timestamp)}</div>
         </div>
-      ))}
+      ))} */}
+              {renderMessages()}
+
       </div>
     </div>
       <div className="input-container">

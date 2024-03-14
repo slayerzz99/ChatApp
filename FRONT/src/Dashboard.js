@@ -3,18 +3,20 @@ import "./App.css";
 import { useEffect, useMemo, useState } from "react";
 import fb from "./asset/image/fb.png"
 import { io } from "socket.io-client";
+import Header from "./Header";
 
 
 function Dashboard() {
   const [users, setUsers] = useState([]);
-  const [msg, setMsg] = useState("");
-  const [room, setRoom] = useState("");
-  const [msg2, setMsg2] = useState([]);
+  const [filterUsers, setFilterUsers] = useState([]);
+
 
   const navigate = useNavigate();
   const useId = localStorage.getItem("userId");
+  const token = localStorage.getItem("token");
 
-  const URL = "http://localhost:8000/api";
+
+  const URL = "https://node-h6he.onrender.com/api";
 
   const getTokenFromCookie = () => {
     const cookies = document.cookie.split("; ");
@@ -27,10 +29,9 @@ function Dashboard() {
     return null;
   };
 
-
   const socket = useMemo(() => {
-    const token = getTokenFromCookie();
-    return io("http://localhost:8000", {
+    const tokenz = getTokenFromCookie();
+    return io("https://node-h6he.onrender.com", {
       auth: {
         token: token
       }
@@ -44,14 +45,8 @@ function Dashboard() {
       console.log("socket connected", socket?.id);
     })
 
-    socket.on("recive" , (data) => {
-      console.log("recived" , data);
-      setMsg2((prev) => [...prev, data]);
-    })
-
-
     const fetchData = async () => {
-      const token = getTokenFromCookie();
+      const tokenz = getTokenFromCookie();
 
       if (!token) {
         navigate("/");
@@ -63,7 +58,7 @@ function Dashboard() {
           headers: {
             Authorization: `${token}`
           }
-        });
+       });
 
         if (!response.ok) {
           throw new Error("Failed to fetch data");
@@ -73,6 +68,7 @@ function Dashboard() {
         const res = await response.json();
         const res2 = res.result.filter(item => item._id != useId);
         setUsers(res2);
+        setFilterUsers(res2);
         // console.log("Response", res?.result);
 
       } catch (error) {
@@ -88,44 +84,41 @@ function Dashboard() {
     };
   }, []);
 
-  const handleSub = () => {
-    console.log("click");
-    socket.emit("msg", {msg , room});
-  }
 
-  console.log("users", msg2);
   // console.log("socket connected22", socket?.id);
 
   const gotoChat = (id) => {
     navigate(`/chat-to/${id}`)
   }
 
+  const callSearch = (e) => {
+    const seacrhText = e.target.value;
+    if(users.length > 0){
+      if(seacrhText == ""){
+        setFilterUsers(users);
+      }
+      else{
+        const users2 = users.filter(user => user.name.toLowerCase().includes(seacrhText.toLowerCase()))
+        setFilterUsers(users2);
+      }
+    }
+  }
+
   return (
     <div className="text-center">
+      <Header/>
       <p>Users</p>
-      {users && users.map((user) => {
+      <input type="text" placeholder="search user" onChange={(e) => callSearch(e)} className="mb-3"></input>
+      {filterUsers && filterUsers.map((user) => {
         return(
-          <div onClick={() => gotoChat(user._id)} className="flex justify-start gap-4 mb-4 relative left-[44%] cursor-pointer" key={user._id}>
+          <div onClick={() => gotoChat(user._id)} className="flex justify-start gap-4 mb-4 relative w-max left-[44%] cursor-pointer" key={user._id}>
           <img className="w-8 h-8 rounded-full" src={user?.profilePic == "" ? fb : user?.profilePic}></img>
           <p>{user.name}</p>
-          <p>{user.email}</p>
+          {/* <p>{user.email}</p> */}
           </div>
         )
       })}
-
-      <p>{socket.id}</p>
-
-      <input placeholder="msg" onChange={(e) => {setMsg(e.target.value)}} type="text"></input>
-      <br/>
-      <input placeholder="room" onChange={(e) => {setRoom(e.target.value)}} type="text"></input>
-      <button type="submit" onClick={handleSub}>Submit</button>
-
-      <div>{msg2 && msg2.map((item) => {
-        return <p key={item.msg}>{item.msg} from {item.room}</p>
-      })}</div>
-    </div>
-
-    
+    </div>    
   );
 }
 

@@ -25,7 +25,7 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "http://localhost:3000"
+    origin: "http://localhost:3001"
   })
 );
 
@@ -52,10 +52,31 @@ app.get("/api/messages/:userId/:senderId", async (req, res) => {
   }
 });
 
+app.delete("/api/deletemessages/:msgId", async (req, res) => {
+  try {
+    const msgId = req.params.msgId;
+
+    console.log("msgId", msgId);
+    // Fetch messages where the senderId or recipientId matches the userId
+    const messages = await Message.findByIdAndDelete(msgId);
+    if (!messages) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      messages: messages,
+      message: "User deleted successfully"
+    });
+  } catch (error) {
+    console.error("Error fetching messages:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 app.use("/api", allApiRoutes);
 
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "build", "index.html"));
+  res.sendFile(path.join(__dirname + "/build/index.html"));
 });
 
 io.use((socket, next) => {
@@ -126,7 +147,12 @@ io.on("connection", socket => {
       // Emit the message to the recipient
       const recipientSocketId = userSocketMap[recipientId];
       if (recipientSocketId) {
-        io.to(recipientSocketId).emit("recive", { message: msg, senderId });
+        io.to(recipientSocketId).emit("recive", {
+          message: msg,
+          senderId,
+          recipientId,
+          timestamp: Date.now()
+        });
       } else {
         console.log("Recipient socket not found for user ID:", recipientId);
       }
@@ -134,9 +160,12 @@ io.on("connection", socket => {
       // Optionally, you can also emit the message to the sender
       const senderSocketId = userSocketMap[senderId];
       if (senderSocketId) {
-        io
-          .to(senderSocketId)
-          .emit("recive", { message: msg, senderId, recipientId });
+        io.to(senderSocketId).emit("recive", {
+          message: msg,
+          senderId,
+          recipientId,
+          timestamp: Date.now()
+        });
       } else {
         console.log("Sender socket not found for user ID:", senderId);
       }

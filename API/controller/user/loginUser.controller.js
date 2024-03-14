@@ -8,7 +8,8 @@ const loginUser = async (req, res) => {
 
     if (!password || !email) {
       return res.status(403).json({
-        result: `Email and password are required`
+        result: null,
+        message: `Email and password are required`
       });
     }
 
@@ -32,7 +33,7 @@ const loginUser = async (req, res) => {
     if (!foundUser || !checkedPassword) {
       return res.status(403).json({
         result: null,
-        message: `Invalid username or password`
+        message: `Invalid email or password`
       });
     }
 

@@ -1,3 +1,7 @@
+body {
+  overflow-x: hidden;
+}
+
 input {
   border: 1px black solid;
 }
@@ -32,4 +36,13 @@ input {
 .message.received {
   align-self: flex-start;
   background-color: #eaeaea; /* Example color */
+}
+
+.msgg {
+  width: 100%;
+  text-overflow: ellipsis;
+  text-wrap: wrap;
+  max-width: 100%;
+  overflow: hidden;
+  /* text-align: right; */
 }
