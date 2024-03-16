@@ -52,6 +52,31 @@ app.get("/api/messages/:userId/:senderId", async (req, res) => {
   }
 });
 
+app.patch("/api/editmessage/:msgId", async (req, res) => {
+  try {
+    const msgId = req.params.msgId;
+    const msg = req.body.message;
+
+    const messageUpdate = await Message.findByIdAndUpdate(msgId, {
+      message: msg
+    });
+
+    if (!messageUpdate) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+
+    const messageUpdated = await Message.findById(msgId);
+
+    res.status(200).json({
+      messages: messageUpdated,
+      message: "Message Updated successfully"
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 app.delete("/api/deletemessages/:msgId", async (req, res) => {
   try {
     const msgId = req.params.msgId;
@@ -60,18 +85,49 @@ app.delete("/api/deletemessages/:msgId", async (req, res) => {
     // Fetch messages where the senderId or recipientId matches the userId
     const messages = await Message.findByIdAndDelete(msgId);
     if (!messages) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "Message not found" });
     }
 
     res.status(200).json({
       messages: messages,
-      message: "User deleted successfully"
+      message: "Message deleted successfully"
     });
   } catch (error) {
     console.error("Error fetching messages:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+app.delete(
+  "/api/deleteallmessages/userId=:userId&senderId=:senderId",
+  async (req, res) => {
+    try {
+      const { userId, senderId } = req.params;
+      console.log("userId:", userId);
+      console.log("senderId:", senderId);
+
+      // delete messages where the senderId or recipientId matches the userId
+      const messages = await Message.deleteMany({
+        $or: [
+          { $and: [{ senderId: userId }, { recipientId: senderId }] },
+          { $and: [{ senderId: senderId }, { recipientId: userId }] }
+        ]
+      });
+
+      if (!messages) {
+        return res.status(404).json({ message: "Message not found" });
+      }
+
+      res.status(200).json({
+        messages: `${messages.deletedCount} deleted successfully`,
+        message: "Messages deleted successfully"
+      });
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
+);
 
 app.use("/api", allApiRoutes);
 
@@ -100,44 +156,13 @@ io.use((socket, next) => {
   });
 });
 
-// io.on("connection", socket => {
-//   console.log("socket connected", socket.id);
-
-//   socket.on("msg", ({ room, msg }) => {
-//     console.log(`Welcome to Chat - message! ${msg}`);
-
-//     socket.to(room).emit("recive", { room, msg });
-//   });
-
-//   // socket.disconnect();
-// });
-
-// io.on("connection", socket => {
-//   console.log("Socket connected:", socket.id);
-
-//   socket.on("msg", async ({ msg, recipientId, senderId }) => {
-//     try {
-//       // Ensure that the senderId is available and valid
-//       if (!senderId) {
-//         throw new Error("Sender ID is missing or invalid");
-//       }
-
-//       await saveMessageToDatabase(senderId, recipientId, msg);
-//       socket.to(senderId).emit("recive", { msg, senderId });
-//       socket.to(recipientId).emit("recive", { msg, senderId });
-//     } catch (error) {
-//       console.error("Error handling message:", error);
-//     }
-//   });
-// });
-
 const userSocketMap = {};
 
 io.on("connection", socket => {
   console.log("Socket connected:", socket.id);
 
   // Handle when a user sends a message
-  socket.on("msg", async ({ msg, recipientId, senderId }) => {
+  socket.on("msg", async ({ msg, recipientId, senderId, name }) => {
     try {
       // Ensure that the senderId and recipientId are provided
       if (!senderId || !recipientId) {
@@ -151,6 +176,7 @@ io.on("connection", socket => {
           message: msg,
           senderId,
           recipientId,
+          name,
           timestamp: Date.now()
         });
       } else {
@@ -164,6 +190,7 @@ io.on("connection", socket => {
           message: msg,
           senderId,
           recipientId,
+          name,
           timestamp: Date.now()
         });
       } else {

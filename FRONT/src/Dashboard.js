@@ -4,17 +4,16 @@ import { useEffect, useMemo, useState } from "react";
 import fb from "./asset/image/fb.png"
 import { io } from "socket.io-client";
 import Header from "./Header";
+import useSocket from "./useSocket";
 
 
 function Dashboard() {
   const [users, setUsers] = useState([]);
   const [filterUsers, setFilterUsers] = useState([]);
 
-
   const navigate = useNavigate();
   const useId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
-
 
   const URL = "https://node-h6he.onrender.com/api";
 
@@ -29,21 +28,19 @@ function Dashboard() {
     return null;
   };
 
-  const socket = useMemo(() => {
-    const tokenz = getTokenFromCookie();
-    return io("https://node-h6he.onrender.com", {
-      auth: {
-        token: token
-      }
-    });
-  }, [getTokenFromCookie]);  
-
+  const socket = useSocket(token); // Use the useSocket hook
 
   useEffect(() => {
+    if (!socket) return;
 
     socket.on("connect", () => {
       console.log("socket connected", socket?.id);
     })
+
+    socket.on("recive", (data) => {
+      console.log("Received Noti in d:", data);
+      // setNotifications(data);
+    });
 
     const fetchData = async () => {
       const tokenz = getTokenFromCookie();
@@ -78,11 +75,7 @@ function Dashboard() {
 
     fetchData();
 
-    return () => {
-      // Clean up the socket connection when the component unmounts
-      socket.disconnect();
-    };
-  }, []);
+  }, [socket]);
 
 
   // console.log("socket connected22", socket?.id);
