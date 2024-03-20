@@ -15,7 +15,7 @@ function Login() {
 
   const navigate = useNavigate();
 
-  const URL = "https://node-h6he.onrender.com/api";
+  const URL = process.env.REACT_APP_API_URL;
 
   const handleChange = e => {
     const { name, value } = e.target;
@@ -136,7 +136,6 @@ function Login() {
           </Link>
         </p>
       </div>
-      <Link to="/dashboard">Dashboard</Link>
     </div>
   );
 }

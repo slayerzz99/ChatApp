@@ -19,7 +19,7 @@ function Register() {
 
   const navigate = useNavigate();
 
-  const URL = "https://node-h6he.onrender.com/api";
+  const URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     fetch(`${URL}/user/getAllUsers`).catch(err => {

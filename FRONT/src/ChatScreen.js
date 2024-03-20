@@ -4,7 +4,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import Header from "./Header";
 import fb from "./asset/image/fb.png";
 import useSocket from "./useSocket";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
+import Notification from "./notification";
 
 function ChatScreen() {
   const [users, setUsers] = useState(null);
@@ -38,7 +39,7 @@ function ChatScreen() {
     return null;
   };
 
-  const URL = "https://node-h6he.onrender.com/api";
+  const URL = process.env.REACT_APP_API_URL;
 
   const socket = useSocket(token); // Use the useSocket hook
 
@@ -54,9 +55,19 @@ function ChatScreen() {
 
       // Add the received message to the messages state
       setMessages((prevMessages) => [...prevMessages, data]);
+
+      toast.custom((t) => (
+        <Notification t={t} data={data} useId={useId}/>
+      ))
+      
+      fetchMessages();
     });
 
     socket.emit("userId", useId);
+
+    return () => {
+      socket.off("receive");
+    };
   }, [socket]);
 
   const fetchMessages = async () => {
@@ -134,7 +145,7 @@ function ChatScreen() {
       const formattedTime = formatDate(messageDate);
 
       const showDate = messageDate.toLocaleDateString() !== currentDate;
-      currentDate = messageDate.toISOString().split("T")[0];
+      currentDate = messageDate.toLocaleDateString();
 
       const editChat = async (id, mes) => {
         let msg = edtype;
@@ -152,7 +163,7 @@ function ChatScreen() {
 
         try {
           const res = await fetch(
-            `http://localhost:8000/api/editmessage/${id}`,
+            `${URL}/editmessage/${id}`,
             {
               method: "PATCH",
               headers: { "Content-Type": "application/json" },
@@ -193,6 +204,7 @@ function ChatScreen() {
       };
 
       console.log("ed", edtype);
+
       return (
         <div className="flex flex-col" key={index}>
           <div className="flex-grow overflow-y-auto">
@@ -246,7 +258,7 @@ function ChatScreen() {
                         }}
                         className="mr-2"
                       >
-                        <i class="fas fa-ellipsis-v"></i>
+                        <i className="fas fa-ellipsis-v"></i>
                       </button>
                     </div>
 
@@ -274,7 +286,6 @@ function ChatScreen() {
             </div>
           </div>
         </div>
-
       );
     });
   };
@@ -302,7 +313,7 @@ function ChatScreen() {
 
   const deleteAllChat = async () => {
     const result = await fetch(
-      `http://localhost:8000/api/deleteallmessages/userId=${useId}&senderId=${id}`,
+      `${URL}/deleteallmessages/userId=${useId}&senderId=${id}`,
       {
         method: "DELETE"
       }
@@ -314,10 +325,10 @@ function ChatScreen() {
     fetchMessages();
   };
 
+
   return (
     <div className="chat-container2">
-      <Header />
-
+      {/* <Header /> */}
       <div className="fixed flex items-center gap-4 mt-1 left-[18%]">
         <p>
           Talking to : <span className="font-semibold">{users?.name}</span>
@@ -346,14 +357,9 @@ function ChatScreen() {
           className="w-full border rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button onClick={handleSub} disabled={loading}>
-          <i class="fa fa-paper-plane fa-lg" aria-hidden="true"></i>
+          <i className="fa fa-paper-plane fa-lg" aria-hidden="true"></i>
         </button>
       </div>
-      <Toaster  
-  position="top-right"
-  reverseOrder={false}
- />
-
     </div>
   );
 }

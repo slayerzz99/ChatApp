@@ -2,8 +2,6 @@ import { useNavigate, useNavigation } from "react-router-dom";
 import "./App.css";
 import { useEffect, useMemo, useState } from "react";
 import fb from "./asset/image/fb.png"
-import { io } from "socket.io-client";
-import Header from "./Header";
 import useSocket from "./useSocket";
 
 
@@ -15,7 +13,7 @@ function Dashboard() {
   const useId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
 
-  const URL = "https://node-h6he.onrender.com/api";
+  const URL = process.env.REACT_APP_API_URL;
 
   const getTokenFromCookie = () => {
     const cookies = document.cookie.split("; ");
@@ -31,17 +29,6 @@ function Dashboard() {
   const socket = useSocket(token); // Use the useSocket hook
 
   useEffect(() => {
-    if (!socket) return;
-
-    socket.on("connect", () => {
-      console.log("socket connected", socket?.id);
-    })
-
-    socket.on("recive", (data) => {
-      console.log("Received Noti in d:", data);
-      // setNotifications(data);
-    });
-
     const fetchData = async () => {
       const tokenz = getTokenFromCookie();
 
@@ -66,7 +53,6 @@ function Dashboard() {
         const res2 = res.result.filter(item => item._id != useId);
         setUsers(res2);
         setFilterUsers(res2);
-        // console.log("Response", res?.result);
 
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -99,7 +85,7 @@ function Dashboard() {
 
   return (
     <div className="text-center">
-      <Header/>
+      {/* <Header/> */}
       <p>Users</p>
       <input type="text" placeholder="search user" onChange={(e) => callSearch(e)} className="mb-3"></input>
       {filterUsers && filterUsers.map((user) => {

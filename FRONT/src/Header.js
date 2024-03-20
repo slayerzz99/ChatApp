@@ -10,36 +10,10 @@ function Header() {
   const token = localStorage.getItem("token");
   const [users, setUsers] = useState("");
   const [visible, setVisible] = useState(false);
-  const [notifications, setNotifications] = useState(null);
 
-  const URL = "https://node-h6he.onrender.com/api";
+  const URL = process.env.REACT_APP_API_URL;
 
-  const socket = useSocket(token); // Use the useSocket hook
-
-  useEffect(() => {
-    if (!socket) return;
-
-    console.log("socket in head", socket);
-
-    socket.on("recive", (data) => {
-      console.log("Received Noti:", data);
-      setNotifications(data);
-    });
-
-  }, [socket]);
-
-  useEffect(() => {
-    // Display notifications for 3 seconds
-    const timer = setTimeout(() => {
-      setNotifications(null);
-    }, 4000);
-
-    return () => clearTimeout(timer); // Clear timeout on unmount or re-render
-
-  }, [notifications]); // Run effect whenever visibleNotifications changes
-
-
-  console.log("noti", notifications);
+  console.log("noti");
 
   const logOut = () => {
     localStorage.clear();
@@ -113,10 +87,6 @@ function Header() {
     fetchData();
   };
 
-  const openChat = (id) => {
-    navigate(`/chat-to/${id}`);
-  }
-
 
   return (
     <div className="fixed right-[60px]">
@@ -139,7 +109,7 @@ function Header() {
         </label>
       </div>}
 
-           {(notifications && notifications?.senderId !== userId) && (<>
+           {/* {(notifications && notifications?.senderId !== userId) && (<>
             <div onClick={() => openChat(notifications?.senderId)} className="cursor-pointer mt-4 max-w-[15rem] bg-[#E8EBEE] p-4">
             <div className="text-left">
               <h5 className="text-blue-500 text-center">New Message!</h5>
@@ -148,7 +118,7 @@ function Header() {
               <p className="font-semibold text-blue-700">Open Message</p>
             </div>
             </div>
-           </>)}
+           </>)} */}
 
     </div>
   );

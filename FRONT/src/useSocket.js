@@ -7,7 +7,7 @@ const useSocket = token => {
   const socket = useMemo(
     () => {
       if (!socketInstance) {
-        socketInstance = io("https://node-h6he.onrender.com", {
+        socketInstance = io(process.env.REACT_APP_URL, {
           auth: {
             token: token
           }
@@ -19,12 +19,14 @@ const useSocket = token => {
   );
 
   useEffect(() => {
-    // Cleanup on unmount
-    return () => {
-      // No need to disconnect socket here
-      // Let it be shared across components
-    };
-  }, []);
+    if (socket && socket !== socketInstance) {
+      socket.close();
+    }
+
+    if (socket) {
+      socket.off("receive");
+    }
+  }, [socket]);
 
   return socket;
 };
