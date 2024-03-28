@@ -9,7 +9,7 @@ let socketInstance;
 const useSocket = token => {
   const useId = localStorage.getItem("userId");
 
-  const URL = process.env.REACT_APP_URL;
+  const URL = "https://chatappbytilak.onrender.com";
 
   const socket = useMemo(
     () => {
