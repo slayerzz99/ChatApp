@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import fb from "./asset/image/fb.png"
-import { io } from "socket.io-client";
-import useSocket from "./useSocket";
 
 function Header() {
   const navigate = useNavigate();

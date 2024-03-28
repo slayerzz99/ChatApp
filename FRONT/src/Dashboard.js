@@ -1,20 +1,18 @@
 import { useNavigate, useNavigation } from "react-router-dom";
 import "./App.css";
-import { useEffect, useMemo, useState } from "react";
-import fb from "./asset/image/fb.png"
+import { useEffect, useMemo, useRef, useState } from "react";
+import fb from "./asset/image/fb.png";
 import useSocket from "./useSocket";
-
+import io from "socket.io-client";
+import SimplePeer from "simple-peer";
 
 function Dashboard() {
   const [users, setUsers] = useState([]);
   const [filterUsers, setFilterUsers] = useState([]);
-
   const navigate = useNavigate();
   const useId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
-
   const URL = process.env.REACT_APP_API_URL;
-
   const getTokenFromCookie = () => {
     const cookies = document.cookie.split("; ");
     for (let cookie of cookies) {
@@ -25,51 +23,38 @@ function Dashboard() {
     }
     return null;
   };
-
   const socket = useSocket(token); // Use the useSocket hook
-
   useEffect(() => {
     const fetchData = async () => {
       const tokenz = getTokenFromCookie();
-
       if (!token) {
         navigate("/");
         return;
       }
-
       try {
         const response = await fetch(`${URL}/user/getAllUsers`, {
           headers: {
             Authorization: `${token}`
           }
        });
-
         if (!response.ok) {
           throw new Error("Failed to fetch data");
         }
-
         // Process response data here if needed
         const res = await response.json();
         const res2 = res.result.filter(item => item._id != useId);
         setUsers(res2);
         setFilterUsers(res2);
-
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-
     fetchData();
-
   }, [socket]);
-
-
   // console.log("socket connected22", socket?.id);
-
   const gotoChat = (id) => {
     navigate(`/chat-to/${id}`)
   }
-
   const callSearch = (e) => {
     const seacrhText = e.target.value;
     if(users.length > 0){
@@ -82,7 +67,6 @@ function Dashboard() {
       }
     }
   }
-
   return (
     <div className="text-center">
       {/* <Header/> */}
@@ -97,8 +81,9 @@ function Dashboard() {
           </div>
         )
       })}
-    </div>    
+    </div>
   );
+
 }
 
 export default Dashboard;

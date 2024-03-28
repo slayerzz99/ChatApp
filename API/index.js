@@ -25,7 +25,7 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "http://localhost:3001"
+    origin: "*"
   })
 );
 
@@ -37,7 +37,6 @@ app.get("/api/messages/:userId/:senderId", async (req, res) => {
     const userId = req.params.userId;
     const senderId = req.params.senderId;
 
-    console.log("senderId", senderId, userId);
     // Fetch messages where the senderId or recipientId matches the userId
     const messages = await Message.find({
       $or: [
@@ -81,7 +80,6 @@ app.delete("/api/deletemessages/:msgId", async (req, res) => {
   try {
     const msgId = req.params.msgId;
 
-    console.log("msgId", msgId);
     // Fetch messages where the senderId or recipientId matches the userId
     const messages = await Message.findByIdAndDelete(msgId);
     if (!messages) {
@@ -103,8 +101,6 @@ app.delete(
   async (req, res) => {
     try {
       const { userId, senderId } = req.params;
-      console.log("userId:", userId);
-      console.log("senderId:", senderId);
 
       // delete messages where the senderId or recipientId matches the userId
       const messages = await Message.deleteMany({
@@ -179,6 +175,7 @@ io.on("connection", socket => {
           name,
           timestamp: Date.now()
         });
+        console.log("map", userSocketMap);
       } else {
         console.log("Recipient socket not found for user ID:", recipientId);
       }
@@ -193,6 +190,7 @@ io.on("connection", socket => {
           name,
           timestamp: Date.now()
         });
+        console.log("map", userSocketMap);
       } else {
         console.log("Sender socket not found for user ID:", senderId);
       }
@@ -211,6 +209,25 @@ io.on("connection", socket => {
   // Add the socket ID to the userSocketMap when a user connects
   socket.on("userId", userId => {
     userSocketMap[userId] = socket.id;
+  });
+
+  console.log("socket me", socket.id);
+  socket.emit("me", socket.id);
+
+  socket.on("disconnected", () => {
+    socket.broadcast.emit("callEnded");
+  });
+
+  socket.on("callUser", data => {
+    io.to(data.userToCall).emit("callUser", {
+      signal: data.signalData,
+      from: data.from,
+      name: data.name
+    });
+  });
+
+  socket.on("answerCall", data => {
+    io.to(data.to).emit("callAccepted", data.signal);
   });
 
   // Remove the socket ID from the userSocketMap when a user disconnects
