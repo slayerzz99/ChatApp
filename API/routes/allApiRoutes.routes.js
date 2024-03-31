@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const userRouter = require("./user.routes");
+const messagesRouter = require("./message.routes");
 
 router.get("/", (req, res) => {
   res.status(200).json({
@@ -10,6 +11,7 @@ router.get("/", (req, res) => {
 });
 
 router.use("/user", userRouter);
+router.use("/message", messagesRouter);
 
 router.get("*", (req, res) => {
   res.status(404).json({

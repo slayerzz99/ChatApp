@@ -1,9 +1,7 @@
-import { useEffect, useState } from "react";
-import Header from "./Header";
+import { useEffect, useRef, useState } from "react";
 import fb from "./asset/image/fb.png";
 import useSocket from "./useSocket";
 import toast from "react-hot-toast";
-import Notification from "./notification";
 import { useParams } from "react-router-dom";
 
 export const RenderMessages = ({users, msg}) => {
@@ -11,6 +9,7 @@ export const RenderMessages = ({users, msg}) => {
     const [edMsgs, setEdMsgs] = useState(null);
     const [edtype, setedtype] = useState(" ");
     const [messages, setMessages] = useState([]);
+    const bottomRef = useRef(null);
 
     const params = useParams();
     const id = params.id;
@@ -30,22 +29,19 @@ export const RenderMessages = ({users, msg}) => {
         const messageDate = new Date(timestamp);
         const today = new Date();
     
-        // Check if the message date is before today
         if (messageDate < today) {
-          // Return time only for past dates
           return messageDate.toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit"
           });
         } else {
-          // Return empty string for current date (will be handled separately)
           return "";
         }
       };
 
     const fetchMessages = async () => {
         try {
-          const response = await fetch(`${URL}/messages/${useId}/${id}`);
+          const response = await fetch(`${URL}/message/getAllMessages/${useId}/${id}`);
           if (!response.ok) {
             throw new Error("Failed to fetch messages");
           }
@@ -59,6 +55,12 @@ export const RenderMessages = ({users, msg}) => {
     useEffect(() => {
         setMessages(msg);
     },[msg])
+
+    useEffect(() => {
+      if(bottomRef.current){
+      bottomRef.current.scrollIntoView({ behavior: "smooth" });
+      }
+    }, [messages]);
 
     return messages.map((message, index) => {
       const messageDate = new Date(message?.timestamp);
@@ -83,7 +85,7 @@ export const RenderMessages = ({users, msg}) => {
 
         try {
           const res = await fetch(
-            `${URL}/editmessage/${id}`,
+            `${URL}/message/editmessage/${id}`,
             {
               method: "PATCH",
               headers: { "Content-Type": "application/json" },
@@ -106,7 +108,7 @@ export const RenderMessages = ({users, msg}) => {
 
       const delChat = async (id) => {
         try {
-          const res = await fetch(`${URL}/deletemessages/${id}`, {
+          const res = await fetch(`${URL}/message/deletemessages/${id}`, {
             method: "DELETE"
           });
           
@@ -205,6 +207,7 @@ export const RenderMessages = ({users, msg}) => {
               </div>
             </div>
           </div>
+          <div ref={bottomRef} />
         </div>
       );
     });

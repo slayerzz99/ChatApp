@@ -3,13 +3,14 @@ import io from "socket.io-client";
 import Notification from "./notification";
 import toast from "react-hot-toast";
 import ChatScreen from "./ChatScreen";
+import VideoCallNotification from "./VideoCallNotification";
 
 let socketInstance;
 
 const useSocket = token => {
   const useId = localStorage.getItem("userId");
 
-  const URL = "https://chatappbytilak.onrender.com";
+  const URL = process.env.REACT_APP_URL;
 
   const socket = useMemo(
     () => {
@@ -39,6 +40,14 @@ const useSocket = token => {
   
         toast.custom((t) => (
           <Notification t={t} data={data} useId={useId}/>
+        ))
+      });
+
+      socket.on("recieveIds", (data) => {
+        console.log("Received message:", data);
+  
+        toast.custom((t) => (
+          <VideoCallNotification t={t} data={data} useId={useId}/>
         ))
       });
 

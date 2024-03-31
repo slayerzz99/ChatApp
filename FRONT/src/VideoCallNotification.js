@@ -1,7 +1,7 @@
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
-export default function Notification({t, data, useId}){
+export default function VideoCallNotification({t, data, useId}){
     const navigate = useNavigate();
     
     return(
@@ -11,22 +11,16 @@ export default function Notification({t, data, useId}){
       t.visible ? 'animate-enter' : 'animate-leave'
     } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
   >
-    <div onClick={() => {navigate(`chat-to/${data?.senderId}`)}} className="flex-1 w-0 p-4 cursor-pointer">
+    <div className="flex-1 w-0 p-4 cursor-pointer">
       <div className="flex items-start">
-        {/* <div className="flex-shrink-0 pt-0.5">
-          <img
-            className="h-10 w-10 rounded-full"
-            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixqx=6GHAjsWpt9&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2.2&w=160&h=160&q=80"
-            alt=""
-          />
-        </div> */}
         <div className="ml-3 flex-1">
           <p className="text-sm font-medium text-gray-900">
-            From: <span className="font-semibold">{data?.name}</span>
+            Call From: <span className="font-semibold">{data?.senderName}</span>
           </p>
-          <p className="mt-1 text-gray-500">
-            Message: <span className="font-semibold">{data?.message}</span>
-          </p>
+        <button className="text-green-600 border-2 rounded-lg p-2 border-green-600"
+         onClick={() => {navigate(`videocall/${data?.senderId}`)}}>
+            Answer
+        </button>
         </div>
       </div>
     </div>

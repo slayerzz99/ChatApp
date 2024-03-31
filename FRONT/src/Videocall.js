@@ -1,11 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import fb from "./asset/image/fb.png";
 import useSocket from "./useSocket";
-import toast from "react-hot-toast";
-import Notification from "./notification";
 import Peer from "simple-peer";
-
 
 function Videocall() {
   const [users, setUsers] = useState(null);
@@ -18,6 +14,7 @@ function Videocall() {
 	const [ idToCall, setIdToCall ] = useState("")
 	const [ callEnded, setCallEnded] = useState(false)
 	const [ name, setName ] = useState("")
+	const [ callerSocket, setcallerSocket ] = useState("")
 	const myVideo = useRef()
 	const userVideo = useRef()
 	const connectionRef= useRef()
@@ -49,16 +46,28 @@ function Videocall() {
   useEffect(() => {
     if (!socket) return;
 
+	socket.emit("sendIds", {
+		senderId: useId,
+		recipientId: id,
+		senderName: userName
+	})
+
     socket.on("me", (id) => {
 			setMe(id)
-		})
+			console.log("id", id);
+	})
 
-		socket.on("callUser", (data) => {
+	socket.on("callUser", (data) => {
 			setReceivingCall(true)
 			setCaller(data.from)
 			setName(data.name)
 			setCallerSignal(data.signal)
-		})
+	})
+
+	socket.on("recieveIds", (data) => {
+		setcallerSocket(data.senderSocketId);
+	})
+	
   }, [socket]);
 
   const callUser = (id) => {
@@ -108,7 +117,9 @@ function Videocall() {
 
 	const leaveCall = () => {
 		setCallEnded(true)
+		if(connectionRef.current){
 		connectionRef.current.destroy()
+		}
 	}
 
 
@@ -118,7 +129,6 @@ function Videocall() {
       return;
     }
 
-    console.log(token);
     try {
       const response = await fetch(`${URL}/user/getUserById/${id}`, {
         headers: {
@@ -171,20 +181,20 @@ function Videocall() {
 				<input
 					id="filled-basic"
 					label="ID to call"
-					value={idToCall}
+					value={callerSocket || idToCall}
 					onChange={(e) => setIdToCall(e.target.value)}
 				/>
 				<div className="call-button">
 					{callAccepted && !callEnded ? (
-						<button onClick={leaveCall}>
+						<button onClick={() => leaveCall()}>
 							End Call
 						</button>
 					) : (
-						<button color="primary" aria-label="call" onClick={() => callUser(idToCall)}>
-							Phone icon
+						<button color="primary" aria-label="call" onClick={() => callUser(callerSocket)}>
+							Call icon
 						</button>
 					)}
-					{idToCall}
+					{callerSocket}
 				</div>
 			</div>
 

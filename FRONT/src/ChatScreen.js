@@ -13,7 +13,6 @@ function ChatScreen() {
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(true); // Add loading state
   const [messages, setMessages] = useState([]);
-  const bottomRef = useRef(null);
 
   const navigate = useNavigate();
 
@@ -56,7 +55,7 @@ function ChatScreen() {
 
   const fetchMessages = async () => {
     try {
-      const response = await fetch(`${URL}/messages/${useId}/${id}`);
+      const response = await fetch(`${URL}/message/getAllMessages/${useId}/${id}`);
       if (!response.ok) {
         throw new Error("Failed to fetch messages");
       }
@@ -100,9 +99,9 @@ function ChatScreen() {
     fetchData();
   }, [id]);
 
-  useEffect(() => {
-    bottomRef.current.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  // useEffect(() => {
+  //   bottomRef.current.scrollIntoView({ behavior: "smooth" });
+  // }, [messages]);
 
 
   const handleSub = () => {
@@ -128,7 +127,7 @@ function ChatScreen() {
 
   const deleteAllChat = async () => {
     const result = await fetch(
-      `${URL}/deleteallmessages/userId=${useId}&senderId=${id}`,
+      `${URL}/message/deleteallmessages/userId=${useId}&senderId=${id}`,
       {
         method: "DELETE"
       }
@@ -161,8 +160,8 @@ function ChatScreen() {
 
       <div className="chat-container">
         <div className="messages-container">
-          <RenderMessages users={users} msg={messages}/></div>
-        <div ref={bottomRef} />
+          <RenderMessages users={users} msg={messages}/>
+          </div>
       </div>
 
       <div className="p-4 flex gap-1">
