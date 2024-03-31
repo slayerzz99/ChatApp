@@ -4,7 +4,7 @@ const controllers = require("../controller/message/message.controller");
 const { authenticateJWT } = require("../middleware/auth");
 
 router
-  .route("getAllMessages/:userId/:senderId")
+  .route("/getAllMessages/:userId/:senderId")
   .get(authenticateJWT, controllers.getAllMessages);
 
 router
