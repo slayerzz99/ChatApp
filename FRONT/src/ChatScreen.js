@@ -55,7 +55,11 @@ function ChatScreen() {
 
   const fetchMessages = async () => {
     try {
-      const response = await fetch(`${URL}/message/getAllMessages/${useId}/${id}`);
+      const response = await fetch(`${URL}/message/getAllMessages/${useId}/${id}`, 
+      {headers: {
+        Authorization: `${token}`
+      }}
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch messages");
       }
