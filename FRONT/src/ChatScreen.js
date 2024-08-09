@@ -133,7 +133,10 @@ function ChatScreen() {
     const result = await fetch(
       `${URL}/message/deleteallmessages/userId=${useId}&senderId=${id}`,
       {
-        method: "DELETE"
+        method: "DELETE",
+        headers: {
+          Authorization: `${token}`
+        }
       }
     );
 

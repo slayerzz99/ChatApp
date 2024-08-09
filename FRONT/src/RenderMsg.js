@@ -41,7 +41,10 @@ export const RenderMessages = ({users, msg}) => {
 
     const fetchMessages = async () => {
         try {
-          const response = await fetch(`${URL}/message/getAllMessages/${useId}/${id}`);
+          const response = await fetch(`${URL}/message/getAllMessages/${useId}/${id}`,
+          {headers: {
+            Authorization: `${token}`
+          }});
           if (!response.ok) {
             throw new Error("Failed to fetch messages");
           }
@@ -88,7 +91,10 @@ export const RenderMessages = ({users, msg}) => {
             `${URL}/message/editmessage/${id}`,
             {
               method: "PATCH",
-              headers: { "Content-Type": "application/json" },
+              headers: {
+                Authorization: `${token}`,
+                "Content-Type": "application/json"
+              },
               body: JSON.stringify(data)
             }
           );
@@ -109,7 +115,10 @@ export const RenderMessages = ({users, msg}) => {
       const delChat = async (id) => {
         try {
           const res = await fetch(`${URL}/message/deletemessages/${id}`, {
-            method: "DELETE"
+            method: "DELETE",
+            headers: {
+              Authorization: `${token}`
+            }
           });
           
           const myprom = fetchMessages();
